@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Консоль - Django Project{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="alert alert-success" role="alert">
+        <h4 class="alert-heading">Готово!</h4>
+        <p>Данные получены и выведены в консоль Django. Проверьте консоль, где запущен сервер разработки.</p>
+        <hr>
+        <p class="mb-0">Данные также сохранены в файл todos_data.json</p>
+    </div>
+    <div class="mt-4">
+        <a href="{% url 'home' %}" class="btn btn-primary">На главную</a>
+        <a href="{% url 'todos_list' %}" class="btn btn-secondary">Просмотр данных в браузере</a>
+    </div>
+</div>
+{% endblock %}
+

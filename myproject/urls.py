@@ -20,22 +20,27 @@ from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.hello_world, name='hello_world'),
+    
+    # Основные страницы
+    path('', views.home, name='home'),
+    path('login/', views.login_view, name='login'),
     
     # Маршруты для работы с данными todos
+    path('todos/', views.todos_list, name='todos_list'),
     path('todos/console/', views.todos_console, name='todos_console'),
     path('todos/browser/', views.todos_browser, name='todos_browser'),
+    path('todos/<int:todo_id>/', views.todo_detail, name='todo_detail'),
     
-    # Маршрутизация с регулярными выражениями для класса-контроллера
+    # Маршрутизация с регулярными выражениями для класса-контроллера (API)
     # Универсальный маршрут с опциональными параметрами (самый специфичный - должен быть первым)
-    re_path(r'^api/todos/(?P<todo_id>\d+)/user/(?P<user_id>\d+)/$', views.TodosController.as_view(), name='todos_complex'),
+    re_path(r'^api/todos/(?P<todo_id>\d+)/user/(?P<user_id>\d+)/$', views.TodosController.as_view(), name='todos_api_complex'),
     
     # Получить todos по user_id (например: /api/todos/user/1/)
-    re_path(r'^api/todos/user/(?P<user_id>\d+)/$', views.TodosController.as_view(), name='todos_by_user'),
+    re_path(r'^api/todos/user/(?P<user_id>\d+)/$', views.TodosController.as_view(), name='todos_api_by_user'),
     
     # Получить конкретный todo по id (например: /api/todos/1/)
-    re_path(r'^api/todos/(?P<todo_id>\d+)/$', views.TodosController.as_view(), name='todo_detail'),
+    re_path(r'^api/todos/(?P<todo_id>\d+)/$', views.TodosController.as_view(), name='todo_api_detail'),
     
     # Получить все todos (самый общий - должен быть последним)
-    re_path(r'^api/todos/$', views.TodosController.as_view(), name='todos_all'),
+    re_path(r'^api/todos/$', views.TodosController.as_view(), name='todos_api_all'),
 ]

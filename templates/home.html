@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Главная - Django Project{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="jumbotron bg-light p-5 rounded shadow">
+                <h1 class="display-4">Welcome </h1>
+                <hr class="my-4">
+                <div class="row mt-4">
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title"> Задачи</h5>
+                                <p class="card-text">Просмотр всех задач из API</p>
+                                <a href="{% url 'todos_list' %}" class="btn btn-primary">Перейти</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title"> Вход</h5>
+                                <p class="card-text">Страница авторизации</p>
+                                <a href="{% url 'login' %}" class="btn btn-success">Войти</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <h3>Функциональность:</h3>
+                    <ul class="list-group">
+                        <li class="list-group-item">✅ Работа с внешним API</li>
+                        <li class="list-group-item">✅ Сохранение данных в JSON</li>
+                        <li class="list-group-item">✅ Вывод в консоль и браузер</li>
+                        <li class="list-group-item">✅ Маршрутизация с регулярными выражениями</li>
+                        <li class="list-group-item">✅ Bootstrap 5 стили</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

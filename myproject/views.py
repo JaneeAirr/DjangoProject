@@ -1,44 +1,24 @@
 import json
 import requests
 from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render
 from django.views import View
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
+from collections import defaultdict
 import os
 
 # Глобальная переменная для хранения данных
 todos_data = []
 
-def hello_world(request):
-    html = """
-    <!DOCTYPE html>
-    <html lang="ru">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Django Project - Главная</title>
-        <link href="/static/bootstrap/bootstrap.min.css" rel="stylesheet">
-    </head>
-    <body>
-        <div class="container mt-5">
-            <div class="jumbotron bg-light p-5 rounded">
-                <h1 class="display-4">Hello world!</h1>
-                <p class="lead">Добро пожаловать в Django проект</p>
-                <hr class="my-4">
-                <p>Практическая работа № 2: Основные понятия Django. Вывод данных</p>
-                <div class="mt-4">
-                    <a class="btn btn-primary btn-lg" href="/todos/browser/" role="button">Просмотр данных в браузере</a>
-                    <a class="btn btn-secondary btn-lg" href="/todos/console/" role="button">Вывод в консоль</a>
-                    <a class="btn btn-info btn-lg" href="/api/todos/" role="button">API - Все данные</a>
-                </div>
-            </div>
-        </div>
-        <script src="/static/bootstrap/bootstrap.bundle.min.js"></script>
-    </body>
-    </html>
-    """
-    return HttpResponse(html)
+def home(request):
+    """Главная страница"""
+    return render(request, 'home.html')
+
+def login_view(request):
+    """Страница входа"""
+    return render(request, 'login.html')
 
 def fetch_todos_data():
     """Получает данные с API и сохраняет в JSON файл и переменную"""
@@ -71,95 +51,57 @@ def fetch_todos_data():
 def todos_console(request):
     """Выводит данные в консоль Django"""
     fetch_todos_data()
-    html = """
-    <!DOCTYPE html>
-    <html lang="ru">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Вывод в консоль</title>
-        <link href="/static/bootstrap/bootstrap.min.css" rel="stylesheet">
-    </head>
-    <body>
-        <div class="container mt-5">
-            <div class="alert alert-success" role="alert">
-                <h4 class="alert-heading">Готово!</h4>
-                <p>Данные получены и выведены в консоль Django. Проверьте консоль, где запущен сервер разработки.</p>
-            </div>
-            <a href="/" class="btn btn-primary">На главную</a>
-            <a href="/todos/browser/" class="btn btn-secondary">Просмотр данных в браузере</a>
-        </div>
-        <script src="/static/bootstrap/bootstrap.bundle.min.js"></script>
-    </body>
-    </html>
-    """
-    return HttpResponse(html)
+    return render(request, 'todos_console.html')
+
+def todos_list(request):
+    """Список задач с группировкой по пользователям"""
+    data = fetch_todos_data()
+    
+    if not data:
+        return render(request, 'todos_list.html', {'todos': [], 'todos_by_user': {}})
+    
+    # Группируем задачи по пользователям
+    todos_by_user = defaultdict(list)
+    for todo in data:
+        todos_by_user[todo['userId']].append(todo)
+    
+    # Сортируем по user_id
+    todos_by_user = dict(sorted(todos_by_user.items()))
+    
+    context = {
+        'todos': data,
+        'todos_by_user': todos_by_user,
+    }
+    
+    return render(request, 'todos_list.html', context)
+
+def todo_detail(request, todo_id):
+    """Детальная информация о задаче"""
+    data = fetch_todos_data()
+    
+    if not data:
+        return HttpResponse("Данные не загружены", status=404)
+    
+    todo = next((t for t in data if t['id'] == int(todo_id)), None)
+    
+    if not todo:
+        return HttpResponse("Задача не найдена", status=404)
+    
+    context = {
+        'todo': todo,
+    }
+    
+    return render(request, 'todo_detail.html', context)
 
 def todos_browser(request):
-    """Выводит данные в веб-браузер через форматирование строки с Bootstrap"""
+    """Выводит данные в веб-браузер через форматирование строки с Bootstrap (старая версия)"""
     data = fetch_todos_data()
     
     if not data:
         return HttpResponse("Ошибка при получении данных с API.")
     
-    # Форматируем данные для вывода в браузер с Bootstrap
-    html = """
-    <!DOCTYPE html>
-    <html lang="ru">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Данные с jsonplaceholder API</title>
-        <link href="/static/bootstrap/bootstrap.min.css" rel="stylesheet">
-    </head>
-    <body>
-        <div class="container mt-5">
-            <h1 class="mb-4">Данные с jsonplaceholder API</h1>
-            <div class="alert alert-info" role="alert">
-                Всего записей: <strong>{total}</strong>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-striped table-hover">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>ID</th>
-                            <th>User ID</th>
-                            <th>Title</th>
-                            <th>Completed</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-    """.format(total=len(data))
-    
-    for todo in data[:50]:  # Показываем первые 50 записей
-        completed_badge = '<span class="badge bg-success">Да</span>' if todo['completed'] else '<span class="badge bg-danger">Нет</span>'
-        html += f"""
-                        <tr>
-                            <td>{todo['id']}</td>
-                            <td>{todo['userId']}</td>
-                            <td>{todo['title']}</td>
-                            <td>{completed_badge}</td>
-                        </tr>
-        """
-    
-    html += f"""
-                    </tbody>
-                </table>
-            </div>
-            <div class="mt-3">
-                <p class="text-muted">Показано 50 из {len(data)} записей</p>
-            </div>
-            <div class="mt-4">
-                <a href="/" class="btn btn-primary">На главную</a>
-                <a href="/todos/console/" class="btn btn-secondary">Вывести в консоль</a>
-            </div>
-        </div>
-        <script src="/static/bootstrap/bootstrap.bundle.min.js"></script>
-    </body>
-    </html>
-    """
-    
-    return HttpResponse(html)
+    # Редирект на новую страницу списка
+    return todos_list(request)
 
 # Класс-контроллер для обработки запросов с регулярными выражениями
 @method_decorator(csrf_exempt, name='dispatch')
